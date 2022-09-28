@@ -1,15 +1,18 @@
-from random import randint
+import random
+import string
 
 
 class RandomUtil:
     @staticmethod
-    def get_password():
-        return 'Dummystr1ng'
+    def get_password(pwd_len):
+        symbols = string.ascii_letters + string.digits
+        return ''.join([random.choice(symbols) for _ in range(pwd_len)])
 
     @staticmethod
-    def get_string():
-        return 'dummystring'
+    def get_string(str_len):
+        letters = string.ascii_letters
+        return ''.join([random.choice(letters) for _ in range(str_len)])
 
     @staticmethod
     def random_choice(iterable):
-        return iterable[randint(0, len(iterable))]
+        return random.choice(iterable)

@@ -1,6 +1,6 @@
-from browser.browser import Browser
-from elements.label import Label
-from utils.logger import Logger
+from framework.browser.browser import Browser
+from framework.elements.label import Label
+from framework.utils.logger import Logger
 
 
 class BasePage:
