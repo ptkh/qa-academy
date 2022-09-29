@@ -3,6 +3,7 @@ import allure
 from framework.browser.browser import Browser
 from tests.config.browser import BrowserConfig
 from tests.config.browser import Grid
+from tests.config.urls import Urls
 
 
 def pytest_addoption(parser):
@@ -23,6 +24,7 @@ def create_browser(request):
         browser = request.config.getoption('--browser')
         Browser.get_browser().set_up_driver(browser_key=browser, grid_port=request.config.getoption('--grid_port'))
         Browser.get_browser().maximize(browser_key=browser)
+        Browser.get_browser().set_url(Urls.TEST_URL)
 
     yield
 

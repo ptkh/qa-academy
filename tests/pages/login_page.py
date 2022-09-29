@@ -1,7 +1,6 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
-
 from framework.elements.label import Label
 from framework.pages.base_page import BasePage
 from framework.elements.text_box import TextBox
@@ -9,7 +8,6 @@ from framework.elements.button import Button
 from framework.utils.random_util import RandomUtil
 from framework.browser.browser import Browser
 from framework.scripts.scripts_js import SCROLL_INTO_VIEW
-from selenium.webdriver.common.action_chains import ActionChains
 import pyautogui
 import os
 
@@ -21,6 +19,7 @@ class LoginPage(BasePage):
     txb_email_loc = "//input[@placeholder='Your email']"
     txb_email_domain_loc = "//input[@placeholder='Domain']"
     domain_dropdown_list_loc = "//div[@class='dropdown__list']"
+    lbl_dropdown_field_loc = 'dropdown__field'
     btn_domain_dropdown_opener_loc = "//div[@class='dropdown__opener']"
     cbx_terms_conditions_loc = "//span[@class='checkbox__box']"
     btn_card_1_next_loc = "//a[text()='Next']"
@@ -33,6 +32,10 @@ class LoginPage(BasePage):
     btn_send_to_bottom_loc = "//button[contains(@class,'send-to-bottom')]"
     btn_accept_cookies_loc = "//button[text()='Not really, no']"
     lbl_timer_loc = "//div[contains(@class,'timer')]"
+
+    @property
+    def page_indicator(self):
+        return self.driver.find_element(LoginPage.search_condition, LoginPage.page_indicator_loc)
 
     @property
     def txb_password(self):
@@ -53,6 +56,14 @@ class LoginPage(BasePage):
                        name='Domain Dropdown Opener')
 
     @property
+    def domain_list(self):
+        return self.driver.find_elements(LoginPage.search_condition, LoginPage.domain_dropdown_list_loc)
+
+    @property
+    def lbl_dropdown_field(self):
+        return Label(search_condition=By.CLASS_NAME, locator=LoginPage.lbl_dropdown_field_loc, name='Dropdown field')
+
+    @property
     def cbx_terms_conditions(self):
         return Button(search_condition=LoginPage.search_condition, locator=LoginPage.cbx_terms_conditions_loc,
                       name="Terms and Conditions Checkbox")
@@ -61,19 +72,6 @@ class LoginPage(BasePage):
     def btn_card_1_next(self):
         return Button(search_condition=LoginPage.search_condition, locator=LoginPage.btn_card_1_next_loc,
                       name="Next on card 1")
-
-    @property
-    def domain_list(self):
-        return self.driver.find_elements(LoginPage.search_condition, LoginPage.domain_dropdown_list_loc)
-
-    @property
-    def dropdown_field(self):
-        return self.driver.find_element(By.CLASS_NAME, 'dropdown__field')
-
-    @property
-    def btn_card_2_next(self):
-        return Button(search_condition=LoginPage.search_condition, locator=LoginPage.btn_card_2_next_loc,
-                      name="Next on card 2")
 
     @property
     def cbx_interests_list(self):
@@ -87,23 +85,23 @@ class LoginPage(BasePage):
 
     @property
     def cbx_interests_unselect_all(self):
-        return Button(search_condition=LoginPage.search_condition,
-                      locator=LoginPage.cbx_interests_unselect_all_loc,
+        return Button(search_condition=LoginPage.search_condition, locator=LoginPage.cbx_interests_unselect_all_loc,
                       name="Unselect all")
 
     @property
     def cbx_interests_select_all(self):
-        return Button(search_condition=LoginPage.search_condition,
-                      locator=LoginPage.cbx_interests_select_all_loc,
+        return Button(search_condition=LoginPage.search_condition, locator=LoginPage.cbx_interests_select_all_loc,
                       name="Select all")
 
     @property
     def btn_upload_image(self):
-        return self.driver.find_element(LoginPage.search_condition, LoginPage.btn_upload_image_loc)
+        return Button(search_condition=LoginPage.search_condition, locator=LoginPage.btn_upload_image_loc,
+                      name="upload")
 
     @property
-    def page_indicator(self):
-        return self.driver.find_element(LoginPage.search_condition, LoginPage.page_indicator_loc)
+    def btn_card_2_next(self):
+        return Button(search_condition=LoginPage.search_condition, locator=LoginPage.btn_card_2_next_loc,
+                      name="Next on card 2")
 
     @property
     def btn_send_to_bottom(self):
@@ -117,14 +115,16 @@ class LoginPage(BasePage):
 
     @property
     def lbl_timer(self):
-        return Label(search_condition=LoginPage.search_condition, locator=LoginPage.lbl_timer_loc,
-                     name="Timer")
+        return Label(search_condition=LoginPage.search_condition, locator=LoginPage.lbl_timer_loc, name="Timer")
 
     def __init__(self):
         super().__init__(search_condition=LoginPage.search_condition, locator=LoginPage.login_form_container_loc,
                          page_name=self.__class__.__name__)
         super().wait_for_page_opened()
         self.driver = Browser().get_driver()
+
+    def card_is_open(self, card_num):
+        return f"{card_num} / 4" == self.page_indicator.text
 
     def input_random_password(self):
         password = RandomUtil.get_password(11) + 'a'
@@ -147,16 +147,20 @@ class LoginPage(BasePage):
             self.driver.execute_script(SCROLL_INTO_VIEW, random_domain)
             WebDriverWait(self.driver, 10).until(ec.element_to_be_clickable(random_domain))
             random_domain.click()
-            if self.dropdown_field.text != 'other':
+            if self.lbl_dropdown_field.get_text() != 'other':
                 break
+
+    def accept_terms_of_use(self):
+        self.cbx_terms_conditions.click()
 
     def fill_card_1_and_click_next(self):
         self.input_random_password()
         self.input_random_email()
-        self.cbx_terms_conditions.click()
+        self.accept_terms_of_use()
         self.btn_card_1_next.click()
 
     def upload_image(self):
+        image_path = os.path.join(os.path.dirname(__file__), "../avatar.png")
         # self.btn_upload_image.click()
         self.btn_upload_image.send_keys(os.path.join(os.getcwd(), '../tests/avatar.png'))
 
@@ -165,11 +169,8 @@ class LoginPage(BasePage):
         for _ in 1, 2, 3:
             RandomUtil.random_choice(self.cbx_interests_list).click()
 
-    def card_is_open(self, card_num):
-        return f"{card_num} / 4" == self.page_indicator.text
-
     def fill_card_2_and_click_next(self):
-        # self.upload_image()
+        self.upload_image()
         self.choose_random_interests()
         self.btn_card_2_next.click()
 
@@ -181,6 +182,9 @@ class LoginPage(BasePage):
 
     def accept_cookies(self):
         self.btn_accept_cookies.click()
+        pyautogui.sleep(3)
+        pyautogui.write(os.path.join(os.getcwd(), '../tests/avatar.png'))
+        pyautogui.press('return')
 
     def cookies_form_is_hidden(self):
         return not self.btn_accept_cookies.is_displayed()

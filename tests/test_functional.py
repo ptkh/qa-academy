@@ -9,7 +9,7 @@ import allure
 class TestFunctional(object):
     def test_login(self, create_browser):
         with allure.step("First step"):
-            Browser.get_browser().set_url('https://userinyerface.com/')
+
             home_page = HomePage()
             assert home_page.welcome_page_is_open()
 
@@ -26,7 +26,7 @@ class TestFunctional(object):
 
     def test_hide_help(self, create_browser):
         with allure.step("First step"):
-            Browser.get_browser().set_url('https://userinyerface.com/')
+
             home_page = HomePage()
             assert home_page.welcome_page_is_open()
 
@@ -37,7 +37,7 @@ class TestFunctional(object):
 
     def test_accept_cookies(self, create_browser):
         with allure.step("First step"):
-            Browser.get_browser().set_url('https://userinyerface.com/')
+
             home_page = HomePage()
             assert home_page.welcome_page_is_open()
 
@@ -48,7 +48,7 @@ class TestFunctional(object):
 
     def test_timer(self, create_browser):
         with allure.step("First step"):
-            Browser.get_browser().set_url('https://userinyerface.com/')
+
             home_page = HomePage()
             assert home_page.welcome_page_is_open()
 
