@@ -1,3 +1,5 @@
+from time import sleep
+
 from framework.browser.browser import Browser
 from tests.pages.home_page import HomePage
 from tests.pages.login_page import LoginPage
@@ -5,22 +7,52 @@ import allure
 
 
 class TestFunctional(object):
-    def test_framework(self, create_browser):
+    def test_login(self, create_browser):
         with allure.step("First step"):
             Browser.get_browser().set_url('https://userinyerface.com/')
             home_page = HomePage()
-            home_page.go_to_next_page()
-            assert 1
-            login_page = LoginPage()
-            login_page.fill_login_form_and_click_next()
-            assert 1
+            assert home_page.welcome_page_is_open()
 
-            # Logger.info('13123')
-            # home_page.wait_for_page_opened()
-            # log = logging.getLogger("Logger")
-            # log.info('sdf')
-            # logging.info('sdfsdfdsfsdf')
-            # logging.error('sdfsdfdsfsdf')
-            # logging.warning('sdfsdfdsfsdf')
-        # finally:
-        #     Browser.quit('chrome')
+            home_page.go_to_next_page()
+            login_page = LoginPage()
+            assert login_page.card_is_open(1)
+
+            login_page.fill_card_1_and_click_next()
+            assert login_page.card_is_open(2)
+
+            login_page.fill_card_2_and_click_next()
+            sleep(5)
+            assert login_page.card_is_open(3)
+
+    def test_hide_help(self, create_browser):
+        with allure.step("First step"):
+            Browser.get_browser().set_url('https://userinyerface.com/')
+            home_page = HomePage()
+            assert home_page.welcome_page_is_open()
+
+            home_page.go_to_next_page()
+            login_page = LoginPage()
+            login_page.hide_help_form()
+            assert login_page.help_form_is_hidden()
+
+    def test_accept_cookies(self, create_browser):
+        with allure.step("First step"):
+            Browser.get_browser().set_url('https://userinyerface.com/')
+            home_page = HomePage()
+            assert home_page.welcome_page_is_open()
+
+            home_page.go_to_next_page()
+            login_page = LoginPage()
+            login_page.accept_cookies()
+            assert login_page.cookies_form_is_hidden()
+
+    def test_timer(self, create_browser):
+        with allure.step("First step"):
+            Browser.get_browser().set_url('https://userinyerface.com/')
+            home_page = HomePage()
+            assert home_page.welcome_page_is_open()
+
+            home_page.go_to_next_page()
+            login_page = LoginPage()
+            assert login_page.initial_timer_value_is("00:00:00")
+

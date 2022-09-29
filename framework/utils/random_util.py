@@ -6,7 +6,7 @@ class RandomUtil:
     @staticmethod
     def get_password(pwd_len):
         symbols = string.ascii_letters + string.digits
-        return ''.join([random.choice(symbols) for _ in range(pwd_len)])
+        return ''.join([random.choice(symbols) for _ in range(pwd_len)]) + str(random.randint(0, 10))
 
     @staticmethod
     def get_string(str_len):
