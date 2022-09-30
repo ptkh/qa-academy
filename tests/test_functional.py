@@ -18,7 +18,6 @@ class TestFunctional(object):
             assert login_page.card_is_open(2)
 
             login_page.fill_card_2_and_click_next()
-            sleep(5)
             assert login_page.card_is_open(3)
 
     def test_hide_help(self, create_browser):

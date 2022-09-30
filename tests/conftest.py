@@ -13,7 +13,7 @@ def pytest_addoption(parser):
                      help="Port of remote connection")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def create_browser(request):
     """
         Создание сессии браузера с именем из конфиг файла.

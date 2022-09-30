@@ -35,7 +35,8 @@ class LoginPage(BasePage):
 
     @property
     def page_indicator(self):
-        return self.driver.find_element(LoginPage.search_condition, LoginPage.page_indicator_loc)
+        return Label(search_condition=LoginPage.search_condition, locator=LoginPage.page_indicator_loc,
+                     name="Page indicator")
 
     @property
     def txb_password(self):
@@ -75,23 +76,15 @@ class LoginPage(BasePage):
 
     @property
     def cbx_interests_list(self):
-        interests = self.driver.find_elements(By.XPATH, LoginPage.cbx_interest_list_loc)
-        try:
-            interests.remove(self.cbx_interests_unselect_all)
-            interests.remove(self.cbx_interests_select_all)
-        except ValueError:
-            pass
-        return interests
+        return self.driver.find_elements(By.XPATH, LoginPage.cbx_interest_list_loc)
 
     @property
     def cbx_interests_unselect_all(self):
-        return Button(search_condition=LoginPage.search_condition, locator=LoginPage.cbx_interests_unselect_all_loc,
-                      name="Unselect all")
+        return self.driver.find_element(LoginPage.search_condition, LoginPage.cbx_interests_unselect_all_loc)
 
     @property
     def cbx_interests_select_all(self):
-        return Button(search_condition=LoginPage.search_condition, locator=LoginPage.cbx_interests_select_all_loc,
-                      name="Select all")
+        return self.driver.find_element(LoginPage.search_condition, LoginPage.cbx_interests_select_all_loc)
 
     @property
     def btn_upload_image(self):
@@ -124,7 +117,8 @@ class LoginPage(BasePage):
         self.driver = Browser().get_driver()
 
     def card_is_open(self, card_num):
-        return f"{card_num} / 4" == self.page_indicator.text
+        self.page_indicator.wait_for_text(f"{card_num} / 4", 10)
+        return f"{card_num} / 4" == self.page_indicator.get_text()
 
     def input_random_password(self):
         password = RandomUtil.get_password(11) + 'a'
@@ -162,14 +156,19 @@ class LoginPage(BasePage):
     def upload_image(self):
         image_path = os.path.join(os.path.dirname(__file__), os.pardir, "avatar.png")
         self.btn_upload_image.click()
-        pyautogui.sleep(5)
+        pyautogui.sleep(3)
         pyautogui.write(image_path)
         pyautogui.press('enter')
 
     def choose_random_interests(self):
+        interests = self.cbx_interests_list
         self.cbx_interests_unselect_all.click()
+        interests.remove(self.cbx_interests_unselect_all)
+        interests.remove(self.cbx_interests_select_all)
         for _ in 1, 2, 3:
-            RandomUtil.random_choice(self.cbx_interests_list).click()
+            item = RandomUtil.random_choice(self.cbx_interests_list)
+            item.click()
+            self.cbx_interests_list.remove(item)
 
     def fill_card_2_and_click_next(self):
         self.upload_image()
@@ -180,15 +179,17 @@ class LoginPage(BasePage):
         self.btn_send_to_bottom.click()
 
     def help_form_is_hidden(self):
+        self.btn_send_to_bottom.wait_for_invisibility()
         return not self.btn_send_to_bottom.is_displayed()
 
     def accept_cookies(self):
         self.btn_accept_cookies.click()
-        pyautogui.sleep(3)
+        pyautogui.sleep(1)
         pyautogui.write(os.path.join(os.getcwd(), '../tests/avatar.png'))
         pyautogui.press('return')
 
     def cookies_form_is_hidden(self):
+        self.btn_accept_cookies.wait_for_invisibility()
         return not self.btn_accept_cookies.is_displayed()
 
     def initial_timer_value_is(self, value):
