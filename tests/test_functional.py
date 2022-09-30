@@ -1,5 +1,7 @@
+from tests.pages.details_page import DetailsPage
 from tests.pages.home_page import HomePage
-from tests.pages.login_page import LoginPage
+from tests.pages.interests_page import InterestsPage
+from tests.pages.email_page import EmailPage
 import allure
 
 
@@ -8,46 +10,48 @@ class TestFunctional(object):
         with allure.step("First step"):
 
             home_page = HomePage()
-            assert home_page.welcome_page_is_open()
+            assert home_page.welcome_page_is_open(), "Welcome page is not open"
 
             home_page.go_to_next_page()
-            login_page = LoginPage()
-            assert login_page.card_is_open(1)
+            email_page = EmailPage()
+            assert email_page.card_is_open(), "Email card is not open"
 
-            login_page.fill_card_1_and_click_next()
-            assert login_page.card_is_open(2)
+            email_page.fill_login_page_and_click_next()
+            interests_page = InterestsPage()
+            assert interests_page.card_is_open(), "Interests card is not open"
 
-            login_page.fill_card_2_and_click_next()
-            assert login_page.card_is_open(3)
+            interests_page.fill_interests_page_and_click_next()
+            details_page = DetailsPage()
+            assert details_page.card_is_open(), "Details card is not open"
 
     def test_hide_help(self, create_browser):
         with allure.step("First step"):
 
             home_page = HomePage()
-            assert home_page.welcome_page_is_open()
+            assert home_page.welcome_page_is_open(), "Welcome page is not open"
 
             home_page.go_to_next_page()
-            login_page = LoginPage()
-            login_page.hide_help_form()
-            assert login_page.help_form_is_hidden()
+            email_page = EmailPage()
+            email_page.hide_help_form()
+            assert email_page.help_form_is_hidden(), "Help form is not hidden"
 
     def test_accept_cookies(self, create_browser):
         with allure.step("First step"):
 
             home_page = HomePage()
-            assert home_page.welcome_page_is_open()
+            assert home_page.welcome_page_is_open(), "Welcome page is not open"
 
             home_page.go_to_next_page()
-            login_page = LoginPage()
-            login_page.accept_cookies()
-            assert login_page.cookies_form_is_hidden()
+            email_page = EmailPage()
+            email_page.accept_cookies()
+            assert email_page.cookies_form_is_hidden(), "Cookies form is not hidden"
 
     def test_timer(self, create_browser):
         with allure.step("First step"):
 
             home_page = HomePage()
-            assert home_page.welcome_page_is_open()
+            assert home_page.welcome_page_is_open(), "Welcome page is not open"
 
             home_page.go_to_next_page()
-            login_page = LoginPage()
-            assert login_page.initial_timer_value_is("00:00:00")
+            email_page = EmailPage()
+            assert email_page.initial_timer_value_is("00:00:00"), "Timer did not start from 00:00:00"
