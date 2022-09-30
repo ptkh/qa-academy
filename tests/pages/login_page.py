@@ -1,8 +1,8 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
-from framework.elements.label import Label
 from framework.pages.base_page import BasePage
+from framework.elements.label import Label
 from framework.elements.text_box import TextBox
 from framework.elements.button import Button
 from framework.utils.random_util import RandomUtil
@@ -160,9 +160,11 @@ class LoginPage(BasePage):
         self.btn_card_1_next.click()
 
     def upload_image(self):
-        image_path = os.path.join(os.path.dirname(__file__), "../avatar.png")
-        # self.btn_upload_image.click()
-        self.btn_upload_image.send_keys(os.path.join(os.getcwd(), '../tests/avatar.png'))
+        image_path = os.path.join(os.path.dirname(__file__), os.pardir, "avatar.png")
+        self.btn_upload_image.click()
+        pyautogui.sleep(5)
+        pyautogui.write(image_path)
+        pyautogui.press('enter')
 
     def choose_random_interests(self):
         self.cbx_interests_unselect_all.click()

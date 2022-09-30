@@ -1,6 +1,3 @@
-from time import sleep
-
-from framework.browser.browser import Browser
 from tests.pages.home_page import HomePage
 from tests.pages.login_page import LoginPage
 import allure
@@ -55,4 +52,3 @@ class TestFunctional(object):
             home_page.go_to_next_page()
             login_page = LoginPage()
             assert login_page.initial_timer_value_is("00:00:00")
-
