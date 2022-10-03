@@ -54,4 +54,4 @@ class TestFunctional(object):
 
             home_page.go_to_next_page()
             email_page = EmailPage()
-            assert email_page.initial_timer_value_is("00:00:00"), "Timer did not start from 00:00:00"
+            assert email_page.check_initial_timer_value("00:00:00"), "Timer did not start from 00:00:00"

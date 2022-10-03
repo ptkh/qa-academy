@@ -137,8 +137,6 @@ class EmailPage(BasePage):
     def help_form_is_hidden(self):
         WebDriverWait(self.driver, Waits.EXPLICITLY_WAIT_SEC).until(ec.invisibility_of_element(self.help_form_title))
         return not self.help_form_title.is_displayed()
-        # self.btn_send_to_bottom.wait_for_invisibility()
-        # return not self.btn_send_to_bottom.is_displayed()
 
     def accept_cookies(self):
         self.btn_accept_cookies.click()
@@ -147,5 +145,5 @@ class EmailPage(BasePage):
         self.btn_accept_cookies.wait_for_invisibility()
         return not self.btn_accept_cookies.is_displayed()
 
-    def initial_timer_value_is(self, value):
+    def check_initial_timer_value(self, value):
         return self.lbl_timer.get_text() == value
