@@ -51,4 +51,4 @@ class Screenshooter:
         Logger.info("Снятие скриншота экрана в файл " + screen_name)
         Browser.get_browser().get_driver().save_screenshot(save_screen_path)
         result_image = Image.open(save_screen_path)
-        Logger.info(VisualRecord(screen_name, result_image))
+        # Logger.info(VisualRecord(screen_name, result_image))
