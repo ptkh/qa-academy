@@ -1,8 +1,8 @@
 # coding=utf-8
-from elements.base.base_element import BaseElement
+from framework.elements.base.base_element import BaseElement
 from selenium.webdriver.common.keys import Keys
 
-from utils.logger import Logger
+from framework.utils.logger import Logger
 
 
 class TextBox(BaseElement):

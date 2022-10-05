@@ -5,13 +5,13 @@ from selenium.common.exceptions import TimeoutException, StaleElementReferenceEx
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.wait import WebDriverWait
 
-from scripts import scripts_js
-from utils.logger import Logger
-from browser.browser import Browser
+from framework.scripts import scripts_js
+from framework.utils.logger import Logger
+from framework.browser.browser import Browser
 from selenium.webdriver.common.by import By
-from waits.wait_for_absence_of_element import WaitForAbsenceOfElementLocated
-from waits.wait_present_with_custom_action import WaitPresentWithCustomAction
-from waits.wait_for_contains_class import WaitForContainsClass
+from framework.waits.wait_for_absence_of_element import WaitForAbsenceOfElementLocated
+from framework.waits.wait_present_with_custom_action import WaitPresentWithCustomAction
+from framework.waits.wait_for_contains_class import WaitForContainsClass
 from selenium.webdriver.common.action_chains import ActionChains
 from tests.config.waits import Waits
 

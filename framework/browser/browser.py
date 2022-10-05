@@ -4,12 +4,12 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from tests.config.waits import Waits
 from tests.config.browser import BrowserConfig
-from browser.browser_factory import BrowserFactory
-from utils.logger import Logger
-from waits.wait_for_custom_event import WaitForCustomEvent
-from waits.wait_for_ready_state_complete import WaitForReadyStateComplete
-from waits.wait_for_true_with_action import WaitForTrueWithAction
-from singleton import Singleton
+from framework.browser.browser_factory import BrowserFactory
+from framework.utils.logger import Logger
+from framework.waits.wait_for_custom_event import WaitForCustomEvent
+from framework.waits.wait_for_ready_state_complete import WaitForReadyStateComplete
+from framework.waits.wait_for_true_with_action import WaitForTrueWithAction
+from framework.singleton import Singleton
 
 
 class Browser(metaclass=Singleton):
