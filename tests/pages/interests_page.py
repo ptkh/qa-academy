@@ -6,7 +6,7 @@ from framework.elements.button import Button
 from framework.utils.random_util import RandomUtil
 from framework.browser.browser import Browser
 from tests.config.waits import Waits
-from tests.test_data import TestData
+from tests.testData.testData import TestData
 import pyautogui
 
 
@@ -69,7 +69,7 @@ class InterestsPage(BasePage):
         self.cbx_interests_unselect_all.click()
         interests.remove(self.cbx_interests_unselect_all.find_element())
         interests.remove(self.cbx_interests_select_all.find_element())
-        for _ in range(3):
+        for _ in range(TestData.INTERESTS_NUM):
             item = RandomUtil.random_choice(interests)
             item.click()
             interests.remove(item)

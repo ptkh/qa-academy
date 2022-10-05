@@ -11,7 +11,7 @@ from framework.browser.browser import Browser
 from framework.scripts.scripts_js import SCROLL_INTO_VIEW
 from tests.config.waits import Waits
 
-from tests.test_data import TestData
+from tests.testData.testData import TestData
 
 
 class EmailPage(BasePage):

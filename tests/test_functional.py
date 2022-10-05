@@ -2,6 +2,7 @@ from tests.pages.details_page import DetailsPage
 from tests.pages.home_page import HomePage
 from tests.pages.interests_page import InterestsPage
 from tests.pages.email_page import EmailPage
+from tests.testData.testData import TestData
 import allure
 
 
@@ -54,4 +55,4 @@ class TestFunctional(object):
 
             home_page.go_to_next_page()
             email_page = EmailPage()
-            assert email_page.check_initial_timer_value("00:00:00"), "Timer did not start from 00:00:00"
+            assert email_page.check_initial_timer_value(TestData.TIMER_VALUE), f"Timer did not start from {TestData.TIMER_VALUE}"
