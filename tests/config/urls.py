@@ -1,2 +1,3 @@
 class Urls(object):
-    pass
+    TEST_URL = "https://jsonplaceholder.typicode.com/"
+

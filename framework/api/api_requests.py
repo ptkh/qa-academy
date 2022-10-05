@@ -5,9 +5,9 @@ from framework.utils.logger import Logger
 
 class APIRequests:
 
-    def __init__(self, base_url, headers):
+    def __init__(self, base_url):
         self.base_url = base_url
-        self.headers = headers
+        self.headers = {'Content-type': 'application/json'}
 
     @staticmethod
     def get_status_code(response):
@@ -31,4 +31,4 @@ class APIRequests:
         response = requests.post(url, json=data)
         Logger.info(f"Response status code: {response.status_code} for get request: \n{url}")
         return response
-    
+
