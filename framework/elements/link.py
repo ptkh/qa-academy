@@ -1,6 +1,6 @@
 # coding=utf-8
-from elements.base.base_element import BaseElement
-from utils.logger import Logger
+from framework.elements.base.base_element import BaseElement
+from framework.utils.logger import Logger
 
 
 class Link(BaseElement):

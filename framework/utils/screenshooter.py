@@ -2,13 +2,11 @@
 import os
 import threading
 from datetime import datetime
-
 from PIL import Image
-from vlogging import VisualRecord
-from browser.browser import Browser
-from constants import screenshots
-from utils.datetime_util import DatetimeUtil
-from utils.logger import Logger
+from framework.browser.browser import Browser
+from framework.constants import screenshots
+from framework.utils.datetime_util import DatetimeUtil
+from framework.utils.logger import Logger
 
 
 class Screenshooter:

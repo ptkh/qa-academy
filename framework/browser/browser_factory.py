@@ -5,7 +5,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
 from tests.config.browser import BrowserConfig, Grid
-from constants import browsers
+from framework.constants import browsers
 from os import environ
 
 

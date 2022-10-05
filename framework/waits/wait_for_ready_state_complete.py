@@ -1,8 +1,8 @@
 # coding=utf-8
 from selenium.common.exceptions import StaleElementReferenceException
 
-from constants import page_states
-from scripts import scripts_js
+from framework.constants import page_states
+from framework.scripts import scripts_js
 
 
 class WaitForReadyStateComplete(object):
