@@ -2,3 +2,5 @@
 *.idea
 *geckodriver.log
 *log.html
+client_secret.json
+__pycache__
