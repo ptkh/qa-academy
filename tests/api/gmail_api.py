@@ -1,7 +1,7 @@
 import allure
 from framework.api.api_requests import APIRequests
 from framework.utils.logger import Logger
-from tests.api.exceptions import GmailApiException
+from tests.api.exceptions import MessageNotReceivedException, MessageWaitTimeoutException
 from tests.testData.test_data import TestData
 import requests
 import base64
@@ -62,7 +62,7 @@ class GmailAPI(APIRequests):
                     Logger.info(f"New email was received in {i}secs")
                     return
                 time.sleep(1)
-            raise GmailApiException("New email was not received")
+            raise MessageWaitTimeoutException("New email was not received in 30 seconds")
 
     def parse_euronews_email(self):
         with allure.step("Parsing email list for euronews email"):
@@ -111,7 +111,7 @@ class GmailAPI(APIRequests):
                 return 'Please Confirm Subscription' in self.email['Subject']
             else:
                 Logger.info("Euronews email was not received. Raising exception")
-                raise GmailApiException("Euronews email was not received")
+                raise MessageNotReceivedException("Euronews email was not received")
 
     def extract_confirmation_link_from_email(self):
         with allure.step("Extracting confirmation link from email"):
