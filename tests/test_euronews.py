@@ -47,6 +47,7 @@ class TestEuronews(object):
 
         with allure.step("On preview find and get a link to unsubscribe from the mailing list, "
                          "follow this link in the browser"):
+            browser.switch_to_frame(newsletters_page.preview_frame_of_chosen_newsletter)
             newsletters_page.follow_unsubscribe_link()
             unsubscribe_page = UnsubscribePage()
             assert unsubscribe_page.is_opened(), "Unsubscribe page did not open"

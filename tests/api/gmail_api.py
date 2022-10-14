@@ -1,16 +1,13 @@
 import allure
 from framework.api.api_requests import APIRequests
 from framework.utils.logger import Logger
+from tests.api.exceptions import GmailApiException
 from tests.testData.test_data import TestData
 import requests
 import base64
 import re
 import time
 import datetime
-
-
-class GmailApiException(Exception):
-    """Custom exception class for GmailAPI"""
 
 
 class GmailAPI(APIRequests):
@@ -54,7 +51,7 @@ class GmailAPI(APIRequests):
             messages = []
             for email in self.email_headers_list:
                 Logger.info(f"Sending request to get email: {email}")
-                messages.append(self.get(f"/gmail/v1/users/enmatheblack@gmail.com/messages/{email['id']}").json())
+                messages.append(self.get(f"/gmail/v1/users/{TestData.email}/messages/{email['id']}").json())
             return messages
 
     def wait_until_new_email(self):
@@ -70,12 +67,7 @@ class GmailAPI(APIRequests):
     def parse_euronews_email(self):
         with allure.step("Parsing email list for euronews email"):
             for email in self.email_list:
-                email_dict = {
-                    'Date': None,
-                    'From': None,
-                    'Subject': None,
-                    'data': None
-                }
+                email_dict = {}
                 for header in email['payload']['headers']:
                     Logger.info(f"Parsing email header: {header['name']}")
                     if header['name'] == 'Date':
@@ -91,7 +83,7 @@ class GmailAPI(APIRequests):
                     Logger.info(f"Current email is from Euronews")
                     current_timestamp = time.time() + time.timezone
                     email_timestamp = time.mktime(datetime.datetime
-                                                  .strptime(email_dict['Date'], '%a, %d %b %Y %H:%M:%S %z').timetuple())
+                                                  .strptime(email_dict['Date'], TestData.time_format).timetuple())
                     if email_timestamp > current_timestamp - 60:
                         Logger.info(f"Current Euronews email was received in last minute at: {email_dict['Date']}")
                         email_dict['data'] = email['payload']['parts'][0]['body']['data']
@@ -106,7 +98,7 @@ class GmailAPI(APIRequests):
     @staticmethod
     def get_href_from_html(html):
         with allure.step("Parsing html to find confirmation button link"):
-            match = re.search(r'href=[\'"]?([^\'" >]+)', html)
+            match = re.search(TestData.href_pattern, html)
             if match:
                 return match.group(1)
 

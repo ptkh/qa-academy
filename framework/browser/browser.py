@@ -122,6 +122,10 @@ class Browser(metaclass=Singleton):
         Logger.info("Переключение на фрейм с именем %s" % frame_name)
         self.get_driver().switch_to_frame(frame_name)
 
+    def switch_to_frame(self, frame_element):
+        Logger.info(f"Switching to provided frame {frame_element}")
+        self.get_driver().self.get_driver().switch_to.frame(frame_element)
+
     def switch_to_frame_by_locator(self, search_condition, locator):
         Logger.info("Переключение на фрейм локатором {}".format(locator))
         self.get_driver().switch_to.frame(self.get_driver().find_element(search_condition, locator))

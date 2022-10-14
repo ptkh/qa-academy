@@ -47,8 +47,7 @@ class NewslettersPage(BasePage):
         super().__init__(search_condition=self.by, locator=self.lbl_header_loc,
                          page_name=self.__class__.__name__)
         super().wait_for_page_opened()
-        self.browser = Browser()
-        self.driver = self.browser.get_driver()
+        self.driver = Browser().get_driver()
         self.newsletter_title = None
         self.btn_preview_random_newsletter = None
 
@@ -86,7 +85,4 @@ class NewslettersPage(BasePage):
         return self.preview_frame_of_chosen_newsletter.is_displayed()
 
     def follow_unsubscribe_link(self):
-        with allure.step("Finding and clicking unsubscribe link"):
-            self.browser.switch_to_frame_by_locator(
-                self.by, f"//div[@id='{self.newsletter_title.lower().replace(' ', '-')}_previews']//iframe")
-            self.btn_unsubscribe.click()
+        self.btn_unsubscribe.click()

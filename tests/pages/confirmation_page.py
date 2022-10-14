@@ -2,11 +2,12 @@ from selenium.webdriver.common.by import By
 from framework.elements.button import Button
 from framework.elements.label import Label
 from framework.pages.base_page import BasePage
+from tests.testData.test_data import TestData
 
 
 class ConfirmationPage(BasePage):
     search_condition = By.XPATH
-    lbl_success_message_loc = "//h1[text()='Your subscription has been successfully confirmed.']"
+    lbl_success_message_loc = f"//h1[text()='{TestData.subscription_confirm_message}']"
     btn_back_to_site_loc = "//a[@aria-label='Back to the site']"
 
     @property
