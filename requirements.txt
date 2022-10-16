@@ -22,3 +22,4 @@ tomli==2.0.1
 selenium==4.5.0
 requests~=2.28.1
 mysql-connector-python~=8.0.31
+PyAutoGUI~=0.9.53
