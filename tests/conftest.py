@@ -1,4 +1,5 @@
 from _pytest.fixtures import FixtureRequest
+from _pytest.logging import LogCaptureFixture
 from _pytest.main import Session
 from _pytest.nodes import Item
 from _pytest.runner import CallInfo
@@ -41,7 +42,7 @@ def create_browser(request):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(terminalreporter: TerminalReporter, request: FixtureRequest, item: Item, call: CallInfo,
-                              session: Session):
+                              session: Session, caplog: LogCaptureFixture):
     yield
     with allure.step("Setting up MySQL database connection"):
         db = MySQL()
@@ -78,3 +79,6 @@ def pytest_runtest_makereport(terminalreporter: TerminalReporter, request: Fixtu
                                'env': f"{platform.node()}|{platform.machine()}|{platform.system()}",
                                'browser': request.config.getoption('--browser'),
                                'author_id': db.author_id})
+
+    with allure.step("Inserting log into log table"):
+        db.insert_log(log=caplog.text, is_exc=f"{1 if status_id == 2 else 0}")
