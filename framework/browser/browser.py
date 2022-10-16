@@ -1,5 +1,6 @@
 # coding=utf-8
 from selenium.common.exceptions import NoSuchWindowException, TimeoutException
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
 from tests.config.waits import Waits
@@ -28,7 +29,7 @@ class Browser(metaclass=Singleton):
     def get_browser_keys(self):
         return self.__web_driver.keys()
 
-    def get_driver(self):
+    def get_driver(self) -> WebDriver:
         return self.__web_driver[self.__selected_browser]
 
     def set_up_driver(self, browser_key=BrowserConfig.BROWSER, capabilities=None, is_incognito=False,

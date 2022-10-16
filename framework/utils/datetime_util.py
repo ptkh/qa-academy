@@ -1,5 +1,6 @@
 # coding=utf-8
 from datetime import datetime, timezone
+import time
 
 
 class DatetimeUtil(object):
@@ -12,3 +13,7 @@ class DatetimeUtil(object):
         utc_dt = datetime.now(timezone.utc)
         dt = utc_dt.replace(hour=utc_dt.time().hour + offset_from_utc)
         return dt.strftime(date_time_format)
+
+    @staticmethod
+    def convert_timestamp_to_sql_datetime(value):
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(value))
