@@ -15,3 +15,12 @@ class DB:
         query = "SELECT * FROM %s WHERE %s=%s;", (table, column, f"'{value}'")
         self.cursor.execute(query)
         return self.cursor.fetchone()
+
+    def fetch_many_items(self, num: int, table: str, condition: str):
+        query = "SELECT * FROM %s WHERE %s;", (table, condition)
+        self.cursor.execute(query)
+        return self.cursor.fetchmany(size=num)
+
+    def delete_items(self, table: str, column: str, value: str):
+        query = "DELETE FROM %s WHERE %s=%s;", (table, column, f"'{value}'")
+        self.cursor.execute(query)

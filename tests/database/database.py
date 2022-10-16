@@ -15,9 +15,10 @@ class MySQL(DB):
         self.author_id = None
 
     def insert_test(self, result: dict):
-        values = ''
+        temp = []
         for name in self.tbl_test_columns.split(', '):
-            values += f"{result[name]}, "
+            temp.append(f"{result[name]}")
+        values = ', '.join(temp)
         self.insert_item(table='test', columns=self.tbl_test_columns, values=values)
 
     def insert_project(self, project_name):
@@ -34,3 +35,10 @@ class MySQL(DB):
         build_number = 'NULL'
         values = f"{session_key}, {created_time}, {build_number}"
         self.session_id = self.insert_item(table='session', columns=columns, values=values)
+
+    def fetch_tests_with_repeating_id(self):
+        temp = []
+        for i in range(10):
+            temp.append(f"id LIKE '%{str(i)*2}%'")
+        condition = ' OR '.join(temp)
+        return self.fetch_many_items(10, table='test', condition=condition)
