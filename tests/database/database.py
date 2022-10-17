@@ -4,6 +4,8 @@ from tests.database.config import Config
 from framework.database.database import DB
 import mysql.connector as my_sql
 
+from tests.testData.test_data import TestData
+
 
 class MySQL(DB):
     tbl_test_columns = "name, status_id, method_name, project_id, " \
@@ -14,6 +16,8 @@ class MySQL(DB):
     def __init__(self):
         with my_sql.connect(**Config.dbinfo()) as conn:
             super().__init__(conn)
+        self.create_db(TestData.db_name)
+        self.restore_db(TestData.dump_db_fp)
         self.project_id = None
         self.session_id = None
         self.author_id = None
