@@ -14,8 +14,7 @@ class MySQL(DB):
     log_columns = 'content, is_exception, test_id'
 
     def __init__(self):
-        with my_sql.connect(**Config.dbinfo()) as conn:
-            super().__init__(conn)
+        super().__init__(my_sql.connect(**Config.dbinfo()))
         self.create_db(TestData.db_name)
         self.restore_db(TestData.dump_db_fp)
         self.project_id = None
@@ -67,3 +66,6 @@ class MySQL(DB):
                 Logger.info("Deleting test with id %d" % test[0])
                 self.delete_item(table='test', column='id', value=str(test[0]))
 
+
+if __name__ == '__main__':
+    db = MySQL()

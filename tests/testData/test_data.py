@@ -2,7 +2,7 @@ import os
 
 
 class TestData:
-    db_name = 'database_task'
+    db_name = 'db_task'
     db_user = 'a1qa'
     db_password = 'password'
     dump_db_fp = os.path.realpath('dump.sql')

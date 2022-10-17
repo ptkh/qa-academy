@@ -23,7 +23,7 @@ class Config(object):
         return {
             'host': cls.HOST,
             'port': cls.PORT,
-            'database': cls.DATABASE,
+            # 'database': cls.DATABASE,
             'user': cls.USER,
             'password': cls.PASSWORD,
             'charset': cls.CHARSET,
