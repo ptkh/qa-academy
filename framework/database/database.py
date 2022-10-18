@@ -12,8 +12,6 @@ class DB:
         query = f"INSERT IGNORE INTO {table} ({column}) VALUES ({value});"
         Logger.info("Executing query: %s" % query)
         self.cursor.execute(query)
-        self.cursor.execute(f"SELECT LAST_INSERT_ID() FROM {table}")
-        return self.cursor.fetchone()
 
     def fetch_item(self, table, column, value):
         query = f"SELECT * FROM {table} WHERE {column}={value};"

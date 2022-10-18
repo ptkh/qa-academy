@@ -14,6 +14,7 @@ class MySQL(DB):
     log_columns = 'content, is_exception, test_id'
     project_columns = 'name'
     author_columns = 'name, login, email'
+    saved_results = []
 
     def __init__(self):
         super().__init__(my_sql.connect(**Config.dbinfo()))
@@ -28,7 +29,8 @@ class MySQL(DB):
             for name in self.test_columns.split(', '):
                 temp.append(f"{result[name]}")
             values = ', '.join(temp)
-            self.test_id = self.insert_item(table='test', column=self.test_columns, value=values)[0]
+            self.insert_item(table='test', column=self.test_columns, value=values)
+            self.test_id = self.fetch_item(table='test', column='start_time', value=result["start_time"])[0]
 
     def insert_log(self, log, is_exc):
         with allure.step("Inserting log into log table"):
@@ -40,12 +42,14 @@ class MySQL(DB):
         with allure.step("Inserting project into project table"):
             value = f"'{project_name}'"
             self.insert_item(table='project', column=self.project_columns, value=value)
+            Logger.info('Selecting recently added project id')
             self.project_id = self.fetch_item(table='project', column='name', value=value)[0]
 
     def insert_author(self, name, login, email):
         with allure.step("Inserting author into author table"):
             value = f"'{name}', '{login}', '{email}'"
-            self.author_id = self.insert_item(table='author', column=self.author_columns, value=value)[0]
+            self.insert_item(table='author', column=self.author_columns, value=value)
+            self.author_id = self.fetch_item(table='author', column='name', value=f'"{name}"')[0]
 
     def insert_session(self):
         with allure.step("Inserting session into session table"):
@@ -53,7 +57,8 @@ class MySQL(DB):
             created_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time())
             build_number = RandomUtil.get_randint(0, 50)
             value = f"'{session_key}', '{created_time}', {build_number}"
-            self.session_id = self.insert_item(table='session', column=self.session_columns, value=value)[0]
+            self.insert_item(table='session', column=self.session_columns, value=value)
+            self.session_id = self.fetch_item(table='session', column='session_key', value=f'"{session_key}"')[0]
 
     def fetch_tests_with_repeating_id(self):
         with allure.step("Selecting results with repeating digits in id"):
@@ -68,6 +73,13 @@ class MySQL(DB):
             for test in tests:
                 Logger.info("Deleting test with id %d" % test[0])
                 self.delete_item(table='test', column='id', value=test[0])
+
+    def select_test_by_id(self, id_):
+        result = self.fetch_item(table='test', column='id', value=id_)
+        if result is None:
+            Logger.info("Test with id %d not found" % id_)
+            return False
+        return result
 
     def close(self):
         self.database.close()
