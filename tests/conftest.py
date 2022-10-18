@@ -1,11 +1,11 @@
-from _pytest.fixtures import FixtureRequest
-from _pytest.logging import LogCaptureFixture
-from _pytest.main import Session
+import time
 from _pytest.nodes import Item
+from _pytest.reports import TestReport
 from _pytest.runner import CallInfo
-from _pytest.terminal import TerminalReporter
 from framework.utils.datetime_util import DatetimeUtil
 from framework.browser.browser import Browser
+from framework.utils.logger import Logger
+from framework.utils.random_util import RandomUtil
 from tests.config.browser import BrowserConfig
 from tests.config.browser import Grid
 from tests.config.urls import Urls
@@ -43,44 +43,70 @@ def create_browser(request):
 
 
 @pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(terminalreporter: TerminalReporter, request: FixtureRequest, item: Item, call: CallInfo,
-                              session: Session, caplog: LogCaptureFixture):
+def pytest_runtest_makereport(item: Item, call: CallInfo):
+    start_time = time.time()
     yield
     with allure.step("Setting up MySQL database connection"):
         db = MySQL()
-        # NOT SURE about restoring dump.sql, restored data doesn't persist in database
-
     with allure.step("Inserting project, author and session into corresponding tables"):
         db.insert_project('L2-p.khachidze')
-
-        db.insert_author('p.khachidze')
-        # NOT SURE about author table, no columns, empty table
-
-        db.insert_session(session=session)
-        # NOT SURE about session_key/ created_time /build_number
-
+        db.insert_author(name='p.khachidze', login='p.khachidze', email='p.khachidze@qa-academy.by')
+        db.insert_session()
+    report = TestReport.from_item_and_call(item, call)
     with allure.step("Checking status of the test (1: PASSED/ 2: FAILED/ 3: SKIPPED)"):
-        passed = [passed.nodeid for passed in terminalreporter.stats.get('passed', [])]
-        if item.nodeid in passed:
-            status_id = 1
-        else:
-            failed = [failed.nodeid for failed in terminalreporter.stats.get('failed', [])]
-            if item.nodeid in failed:
-                status_id = 2
-            else:
-                status_id = 3
-
+        status_id = 1
+        if report.failed:
+            status_id = 2
+        elif report.skipped:
+            status_id = 3
     with allure.step("Inserting test result into test table"):
-        db.insert_test(result={'name': 'NULL',
+        s_time = DatetimeUtil.convert_timestamp_to_sql_datetime(start_time)
+        e_time = DatetimeUtil.convert_timestamp_to_sql_datetime(start_time + report.duration)
+        db.insert_test(result={'name': f"'{report.head_line}'",
                                'status_id': status_id,
-                               'method_name': request.function,
+                               'method_name': f"'{report.location[0]}'",
                                'project_id': db.project_id,
                                'session_id': db.session_id,
-                               'start_time': DatetimeUtil.convert_timestamp_to_sql_datetime(call.start),
-                               'end_time': DatetimeUtil.convert_timestamp_to_sql_datetime(call.stop),
-                               'env': f"{platform.node()}|{platform.machine()}|{platform.system()}",
-                               'browser': request.config.getoption('--browser'),
+                               'start_time': f"'{s_time}'",
+                               'end_time': f"'{e_time}'",
+                               'env': f"'{platform.node()}|{platform.machine()}|{platform.system()}'",
+                               'browser': f"'{BrowserConfig.BROWSER}'",
                                'author_id': db.author_id})
-
     with allure.step("Inserting log into log table"):
-        db.insert_log(log=caplog.text, is_exc=f"{1 if status_id == 2 else 0}")
+        db.insert_log(log=report.caplog, is_exc=1 if status_id == 2 else 0)
+    db.close()
+
+
+@pytest.fixture(scope='session', autouse=True)
+def processing_of_test_data():
+    with allure.step("Setting up database"):
+        db = MySQL()
+    with allure.step("Selecting tests from database"):
+        tests = db.fetch_tests_with_repeating_id()
+    with allure.step("Inserting project, author and session into corresponding tables"):
+        db.insert_project('L2-p.khachidze')
+        db.insert_author(name='p.khachidze', login='p.khachidze', email='p.khachidze@qa-academy.by')
+        db.insert_session()
+    with allure.step("Mutating tests"):
+        s_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time())
+        e_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time() + RandomUtil.get_randint(0, 20))
+        mutated_tests = []
+        for test in tests:
+            Logger.info(str(test))
+            mutated_tests.append({'name': f'"{test[1]}"',
+                                  'status_id': RandomUtil.get_randint(1, 4),
+                                  'method_name': f'"{test[3]}"',
+                                  'project_id': test[4],
+                                  'session_id': db.session_id,
+                                  'start_time': f"'{s_time}'",
+                                  'end_time': f"'{e_time}'",
+                                  'env': f"'{platform.node()}|{platform.machine()}|{platform.system()}'",
+                                  'browser': f"'{BrowserConfig.BROWSER}'",
+                                  'author_id': db.author_id})
+    with allure.step("Inserting tests into database"):
+        for test in mutated_tests:
+            db.insert_test(test)
+    with allure.step("Deleting previously selected tests from database"):
+        db.delete_tests(tests)
+    db.close()
+    yield

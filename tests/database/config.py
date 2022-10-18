@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from tests.testData.test_data import TestData
 
 
 class Config(object):
@@ -9,9 +8,9 @@ class Config(object):
     """
 
     HOST = 'localhost'
-    DATABASE = TestData.db_name
-    USER = TestData.db_user
-    PASSWORD = TestData.db_password
+    DATABASE = "union_reporting"
+    USER = 'a1qa'
+    PASSWORD = 'password'
     PORT = 3306
 
     CHARSET = 'utf8'
@@ -23,7 +22,7 @@ class Config(object):
         return {
             'host': cls.HOST,
             'port': cls.PORT,
-            # 'database': cls.DATABASE,
+            'database': cls.DATABASE,
             'user': cls.USER,
             'password': cls.PASSWORD,
             'charset': cls.CHARSET,

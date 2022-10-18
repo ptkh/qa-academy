@@ -1,22 +1,22 @@
+import time
 import allure
+from framework.utils.datetime_util import DatetimeUtil
 from framework.utils.logger import Logger
+from framework.utils.random_util import RandomUtil
 from tests.database.config import Config
 from framework.database.database import DB
 import mysql.connector as my_sql
 
-from tests.testData.test_data import TestData
-
 
 class MySQL(DB):
-    tbl_test_columns = "name, status_id, method_name, project_id, " \
-                       "session_id, start_time, end_time, env, browser, author_id"
+    test_columns = "name, status_id, method_name, project_id, session_id, start_time, end_time, env, browser, author_id"
     session_columns = 'session_key, created_time, build_number'
     log_columns = 'content, is_exception, test_id'
+    project_columns = 'name'
+    author_columns = 'name, login, email'
 
     def __init__(self):
         super().__init__(my_sql.connect(**Config.dbinfo()))
-        self.create_db(TestData.db_name)
-        self.restore_db(TestData.dump_db_fp)
         self.project_id = None
         self.session_id = None
         self.author_id = None
@@ -25,32 +25,35 @@ class MySQL(DB):
     def insert_test(self, result: dict):
         with allure.step("Inserting test into test table"):
             temp = []
-            for name in self.tbl_test_columns.split(', '):
+            for name in self.test_columns.split(', '):
                 temp.append(f"{result[name]}")
             values = ', '.join(temp)
-            self.test_id = self.insert_item(table='test', columns=self.tbl_test_columns, values=values)
+            self.test_id = self.insert_item(table='test', column=self.test_columns, value=values)[0]
 
     def insert_log(self, log, is_exc):
         with allure.step("Inserting log into log table"):
-            values = f"{log}, {is_exc}, {self.test_id}"
-            self.insert_item(table='log', columns=self.log_columns, values=values)
+            log_string = str(log).replace('"', "'")
+            values = f'"{log_string}", {is_exc}, {self.test_id}'
+            self.insert_item(table='log', column=self.log_columns, value=values)
 
     def insert_project(self, project_name):
         with allure.step("Inserting project into project table"):
-            self.project_id = self.insert_item(table='project', columns='name', values=project_name)
+            value = f"'{project_name}'"
+            self.insert_item(table='project', column=self.project_columns, value=value)
+            self.project_id = self.fetch_item(table='project', column='name', value=value)[0]
 
-    def insert_author(self, author):
+    def insert_author(self, name, login, email):
         with allure.step("Inserting author into author table"):
-            self.author_id = self.insert_item(table='author', columns='name', values=author)
+            value = f"'{name}', '{login}', '{email}'"
+            self.author_id = self.insert_item(table='author', column=self.author_columns, value=value)[0]
 
-    def insert_session(self, session):
+    def insert_session(self):
         with allure.step("Inserting session into session table"):
-            # NOT SURE
-            session_key = 'NULL'
-            created_time = 'NULL'
-            build_number = 'NULL'
-            values = f"{session_key}, {created_time}, {build_number}"
-            self.session_id = self.insert_item(table='session', columns=self.session_columns, values=values)
+            session_key = RandomUtil.get_integer_key(13)
+            created_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time())
+            build_number = RandomUtil.get_randint(0, 50)
+            value = f"'{session_key}', '{created_time}', {build_number}"
+            self.session_id = self.insert_item(table='session', column=self.session_columns, value=value)[0]
 
     def fetch_tests_with_repeating_id(self):
         with allure.step("Selecting results with repeating digits in id"):
@@ -64,7 +67,10 @@ class MySQL(DB):
         with allure.step("Deleting given tests from the database"):
             for test in tests:
                 Logger.info("Deleting test with id %d" % test[0])
-                self.delete_item(table='test', column='id', value=str(test[0]))
+                self.delete_item(table='test', column='id', value=test[0])
+
+    def close(self):
+        self.database.close()
 
 
 if __name__ == '__main__':
