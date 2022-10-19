@@ -1,9 +1,4 @@
-import platform
-import time
 import pytest
-from framework.utils.datetime_util import DatetimeUtil
-from framework.utils.random_util import RandomUtil
-from tests.config.browser import BrowserConfig
 from tests.pages.details_page import DetailsPage
 from tests.pages.home_page import HomePage
 from tests.pages.interests_page import InterestsPage
