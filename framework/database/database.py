@@ -29,3 +29,6 @@ class DB:
         query = f"DELETE FROM {table} WHERE {column}={value};"
         Logger.info("Executing query: %s" % query)
         self.cursor.execute(query)
+
+    def close(self):
+        self.database.close()

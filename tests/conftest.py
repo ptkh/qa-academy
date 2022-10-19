@@ -6,7 +6,9 @@ from framework.browser.browser import Browser
 from tests.config.browser import BrowserConfig
 from tests.config.browser import Grid
 from tests.config.urls import Urls
-from tests.database.database import MySQL
+from tests.database.config import Config
+from tests.database.database import UnionReportingDB
+import mysql.connector as my_sql
 import pytest
 import allure
 
@@ -40,8 +42,8 @@ def create_browser(request):
 
 @pytest.fixture(scope='session')
 def db():
-    with allure.step("Setting up MySQL database connection"):
-        db = MySQL()
+    with allure.step("Setting up UnionReportingDB database connection"):
+        db = UnionReportingDB(my_sql.connect(**Config.dbinfo()))
         yield db
         db.close()
 
@@ -51,5 +53,5 @@ def pytest_runtest_makereport(item: Item, call: CallInfo):
     start_time = time.time()
     yield
     report = TestReport.from_item_and_call(item, call)
-    MySQL.saved_results.append((start_time, report))
+    UnionReportingDB.saved_results.append((start_time, report))
 

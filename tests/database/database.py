@@ -1,72 +1,132 @@
+import platform
 import time
 import allure
 from framework.utils.datetime_util import DatetimeUtil
 from framework.utils.logger import Logger
 from framework.utils.random_util import RandomUtil
-from tests.database.config import Config
+from tests.config.browser import BrowserConfig
 from framework.database.database import DB
-import mysql.connector as my_sql
+from tests.testData.test_data import TestData
 
 
-class MySQL(DB):
-    test_columns = "name, status_id, method_name, project_id, session_id, start_time, end_time, env, browser, author_id"
-    session_columns = 'session_key, created_time, build_number'
-    log_columns = 'content, is_exception, test_id'
-    project_columns = 'name'
-    author_columns = 'name, login, email'
+class UnionReportingDB(DB):
     saved_results = []
+    inserted_test_ids = []
 
-    def __init__(self):
-        super().__init__(my_sql.connect(**Config.dbinfo()))
-        self.project_id = None
-        self.session_id = None
-        self.author_id = None
-        self.test_id = None
+    def add_results_to_database_get_ids(self, results, author_id, project_id, session_id, exclude=()):
+        with allure.step("Adding results to the database"):
+            inserted_test_ids = set()
+            inserted_test_headlines = set()
+            for result_tuple in results:
+                with allure.step("Parsing result"):
+                    time_start = result_tuple[0]
+                    report = result_tuple[1]
+                    if report.head_line in exclude or report.head_line in inserted_test_headlines:
+                        continue
+                    start_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time_start)
+                    end_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time_start + report.duration)
+                    status_id = 1
+                    if report.failed:
+                        status_id = 2
+                    elif report.skipped:
+                        status_id = 3
+                with allure.step("Inserting test result into test table"):
+                    self.insert_test(result={'name': f"'Running {report.head_line}'",
+                                             'status_id': status_id,
+                                             'method_name': f"'{'/'.join((report.location[0], report.head_line))}'",
+                                             'project_id': project_id,
+                                             'session_id': session_id,
+                                             'start_time': f"'{start_time}'",
+                                             'end_time': f"'{end_time}'",
+                                             'env': f"'{platform.node()}|{platform.machine()}|{platform.system()}'",
+                                             'browser': f"'{BrowserConfig.BROWSER}'",
+                                             'author_id': author_id})
+                    test_id = self.get_test_id_by_start_time(start_time)
+                    self.insert_log(log=report.caplog, is_exc=1 if status_id == 2 else 0, test_id=test_id)
+                    inserted_test_ids.add(test_id)
+                    inserted_test_headlines.add(report.head_line)
+            return inserted_test_ids
 
-    def insert_test(self, result: dict):
-        with allure.step("Inserting test into test table"):
-            temp = []
-            for name in self.test_columns.split(', '):
-                temp.append(f"{result[name]}")
-            values = ', '.join(temp)
-            self.insert_item(table='test', column=self.test_columns, value=values)
-            self.test_id = self.fetch_item(table='test', column='start_time', value=result["start_time"])[0]
+    @staticmethod
+    def update_tests(selected_tests, author_id, session_id):
+        with allure.step("Simulate the launch of the tests and insert into database"):
+            updated_tests = []
+            for test in selected_tests:
+                s_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time())
+                e_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time() + RandomUtil.get_randint(0, 20))
+                updated_tests.append({'name': f'"{test[1]}"',
+                                      'status_id': RandomUtil.get_randint(1, 4),
+                                      'method_name': f'"{test[3]}"',
+                                      'project_id': test[4],
+                                      'session_id': session_id,
+                                      'start_time': f"'{s_time}'",
+                                      'end_time': f"'{e_time}'",
+                                      'env': f"'{platform.node()}|{platform.machine()}|{platform.system()}'",
+                                      'browser': f"'{BrowserConfig.BROWSER}'",
+                                      'author_id': author_id})
+            return updated_tests
 
-    def insert_log(self, log, is_exc):
-        with allure.step("Inserting log into log table"):
-            log_string = str(log).replace('"', "'")
-            values = f'"{log_string}", {is_exc}, {self.test_id}'
-            self.insert_item(table='log', column=self.log_columns, value=values)
+    def get_author_id_by_name(self, name):
+        Logger.info("Fetching id of author name by name")
+        return self.fetch_item(table='author', column='name', value=f'"{name}"')[0]
 
-    def insert_project(self, project_name):
-        with allure.step("Inserting project into project table"):
-            value = f"'{project_name}'"
-            self.insert_item(table='project', column=self.project_columns, value=value)
-            Logger.info('Selecting recently added project id')
-            self.project_id = self.fetch_item(table='project', column='name', value=value)[0]
+    def get_test_id_by_start_time(self, start_time):
+        Logger.info("Fetching id of test by start time")
+        return self.fetch_item(table='test', column='start_time', value=start_time)[0]
 
-    def insert_author(self, name, login, email):
-        with allure.step("Inserting author into author table"):
-            value = f"'{name}', '{login}', '{email}'"
-            self.insert_item(table='author', column=self.author_columns, value=value)
-            self.author_id = self.fetch_item(table='author', column='name', value=f'"{name}"')[0]
+    def get_project_id_by_project_name(self, project_name):
+        return self.fetch_item(table='project', column='name', value=project_name)[0]
 
-    def insert_session(self):
-        with allure.step("Inserting session into session table"):
-            session_key = RandomUtil.get_integer_key(13)
-            created_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time())
-            build_number = RandomUtil.get_randint(0, 50)
-            value = f"'{session_key}', '{created_time}', {build_number}"
-            self.insert_item(table='session', column=self.session_columns, value=value)
-            self.session_id = self.fetch_item(table='session', column='session_key', value=f'"{session_key}"')[0]
+    def get_session_id_by_key(self, session_key):
+        with allure.step("Fetching session id by key"):
+            return self.fetch_item(table='session', column='session_key', value=f'"{session_key}"')[0]
 
-    def fetch_tests_with_repeating_id(self):
+    def get_test_by_id(self, id_):
+        result = self.fetch_item(table='test', column='id', value=id_)
+        if result is None:
+            Logger.info("Test with id %d not found" % id_)
+            return False
+        return result
+
+    def get_tests_with_repeating_id(self, size):
         with allure.step("Selecting results with repeating digits in id"):
             temp = []
             for i in range(10):
                 temp.append(f"id LIKE '%{str(i)*2}%'")
             condition = ' OR '.join(temp)
-            return self.fetch_many_items(10, table='test', condition=condition)
+            return self.fetch_many_items(size, table='test', condition=condition)
+
+    def insert_test(self, result: dict):
+        with allure.step("Inserting test into test table"):
+            temp = []
+            for name in TestData.test_columns.split(', '):
+                temp.append(f"{result[name]}")
+            values = ', '.join(temp)
+            self.insert_item(table='test', column=TestData.test_columns, value=values)
+
+    def insert_log(self, log, is_exc, test_id):
+        with allure.step("Inserting log into log table"):
+            log_string = str(log).replace('"', "'")
+            values = f'"{log_string}", {is_exc}, {test_id}'
+            self.insert_item(table='log', column=TestData.log_columns, value=values)
+
+    def insert_project(self, project_name):
+        with allure.step("Inserting project into project table"):
+            value = f"'{project_name}'"
+            self.insert_item(table='project', column=TestData.project_columns, value=value)
+            Logger.info('Selecting recently added project id')
+
+    def insert_author(self, name, login, email):
+        with allure.step("Inserting author into author table"):
+            value = f"'{name}', '{login}', '{email}'"
+            self.insert_item(table='author', column=TestData.author_columns, value=value)
+
+    def insert_session(self, session_key):
+        with allure.step("Inserting session into session table"):
+            created_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time())
+            build_number = RandomUtil.get_randint(0, 50)
+            value = f"'{session_key}', '{created_time}', {build_number}"
+            self.insert_item(table='session', column=TestData.session_columns, value=value)
 
     def delete_tests(self, tests: list):
         with allure.step("Deleting given tests from the database"):
@@ -74,16 +134,3 @@ class MySQL(DB):
                 Logger.info("Deleting test with id %d" % test[0])
                 self.delete_item(table='test', column='id', value=test[0])
 
-    def select_test_by_id(self, id_):
-        result = self.fetch_item(table='test', column='id', value=id_)
-        if result is None:
-            Logger.info("Test with id %d not found" % id_)
-            return False
-        return result
-
-    def close(self):
-        self.database.close()
-
-
-if __name__ == '__main__':
-    db = MySQL()

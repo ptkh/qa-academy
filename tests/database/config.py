@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+import os
 
 
 class Config(object):
@@ -7,25 +9,18 @@ class Config(object):
         mysql.connector.Connect(**Config.dbinfo())
     """
 
-    HOST = 'localhost'
-    DATABASE = "union_reporting"
-    USER = 'a1qa'
-    PASSWORD = 'password'
-    PORT = 3306
-
-    CHARSET = 'utf8'
-    UNICODE = True
-    WARNINGS = True
-
     @classmethod
     def dbinfo(cls):
-        return {
-            'host': cls.HOST,
-            'port': cls.PORT,
-            'database': cls.DATABASE,
-            'user': cls.USER,
-            'password': cls.PASSWORD,
-            'charset': cls.CHARSET,
-            'use_unicode': cls.UNICODE,
-            'get_warnings': cls.WARNINGS,
-        }
+        """config.json contents
+        {
+          "host": "localhost",
+          "port": 3306,
+          "database": {database},
+          "user": {user},
+          "password": {password},
+          "charset": "utf-8",
+          "unicode": true,
+          "warnings": true
+        }"""
+        with open(os.path.join(os.path.dirname(__file__), 'config.json')) as conf:
+            return json.load(conf)

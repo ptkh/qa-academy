@@ -66,79 +66,47 @@ class TestFunctional(object):
 
     @pytest.mark.run(order=5)
     def test_processing_of_test_data(self, db):
-        with allure.step("Precondition: Selecting tests from database"):
-            selected_tests = db.fetch_tests_with_repeating_id()
-            db.insert_project('L2-p.khachidze')
-            db.insert_author(name='p.khachidze', login='p.khachidze', email='p.khachidze@qa-academy.by')
-            db.insert_session()
+        with allure.step("Precondition: Select and copy tests from database"):
+            selected_tests = db.get_tests_with_repeating_id(size=TestData.num_tests)
         with allure.step("Simulate the launch of the tests and insert into database"):
-            s_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time())
-            e_time = DatetimeUtil.convert_timestamp_to_sql_datetime(time.time() + RandomUtil.get_randint(0, 20))
-            updated_tests = []
-            inserted_test_ids = []
-            for test in selected_tests:
-                updated_tests.append({'name': f'"{test[1]}"',
-                                      'status_id': RandomUtil.get_randint(1, 4),
-                                      'method_name': f'"{test[3]}"',
-                                      'project_id': test[4],
-                                      'session_id': db.session_id,
-                                      'start_time': f"'{s_time}'",
-                                      'end_time': f"'{e_time}'",
-                                      'env': f"'{platform.node()}|{platform.machine()}|{platform.system()}'",
-                                      'browser': f"'{BrowserConfig.BROWSER}'",
-                                      'author_id': db.author_id})
-            for test in updated_tests:
-                db.insert_test(test)
-                inserted_test_ids.append(db.test_id)
+            db.insert_session(TestData.session_key)
+            db.insert_author(name=TestData.author_name,
+                             login=TestData.author_login,
+                             email=TestData.author_email)
+            updated_tests = db.update_tests(selected_tests=selected_tests,
+                                            author_id=db.get_author_id_by_name(name=TestData.author_name),
+                                            session_id=db.get_session_id_by_key(session_key=TestData.session_key))
+            inserted_ids = db.add_results_to_database_get_ids(
+                results=updated_tests,
+                author_id=db.get_author_id_by_name(name=TestData.author_name),
+                project_id=db.get_project_id_by_project_name(project_name=TestData.project_name),
+                session_id=db.get_session_id_by_key(TestData.session_key))
         with allure.step("Check that tests are completed and information is updated"):
-            for ID in inserted_test_ids:
-                assert db.select_test_by_id(id_=ID), "Information was not updated"
+            for ID in inserted_ids:
+                assert db.get_test_by_id(id_=ID), "Information was not updated"
         with allure.step("Postcondition: Delete previously selected tests from database"):
             db.delete_tests(selected_tests)
         with allure.step("Check that records have been deleted"):
             for test in selected_tests:
-                assert not db.select_test_by_id(id_=test[0]), "Record was not deleted"
+                assert not db.get_test_by_id(id_=test[0]), "Record was not deleted"
 
     @pytest.mark.run(order=6)
     def test_add_new_entry(self, db):
         with allure.step("Check that tests have been completed"):
-            assert len(db.saved_results) > 0
-        inserted_test_ids = set()
-        inserted_test_headlines = set()
+            assert len(db.saved_results) > 0, "Tests didn't complete"
         with allure.step("Postcondition: add results to the database"):
-            for result_tuple in db.saved_results:
-                with allure.step("Parsing result"):
-                    start_time = result_tuple[0]
-                    report = result_tuple[1]
-                    if report.head_line == "TestFunctional.test_add_new_entry" or \
-                            report.head_line == "TestFunctional.test_processing_of_test_data" or \
-                            report.head_line in inserted_test_headlines:
-                        continue
-                    s_time = DatetimeUtil.convert_timestamp_to_sql_datetime(start_time)
-                    e_time = DatetimeUtil.convert_timestamp_to_sql_datetime(start_time + report.duration)
-                with allure.step("Inserting test result into test table"):
-                    db.insert_project('L2-p.khachidze')
-                    db.insert_author(name='p.khachidze', login='p.khachidze', email='p.khachidze@qa-academy.by')
-                    db.insert_session()
-                    status_id = 1
-                    if report.failed:
-                        status_id = 2
-                    elif report.skipped:
-                        status_id = 3
-                    db.insert_test(result={'name': f"'Running {report.head_line}'",
-                                           'status_id': status_id,
-                                           'method_name': f"'{'/'.join((report.location[0], report.head_line))}'",
-                                           'project_id': db.project_id,
-                                           'session_id': db.session_id,
-                                           'start_time': f"'{s_time}'",
-                                           'end_time': f"'{e_time}'",
-                                           'env': f"'{platform.node()}|{platform.machine()}|{platform.system()}'",
-                                           'browser': f"'{BrowserConfig.BROWSER}'",
-                                           'author_id': db.author_id})
-                    inserted_test_ids.add(db.test_id)
-                    inserted_test_headlines.add(report.head_line)
-                with allure.step("Inserting log into log table"):
-                    db.insert_log(log=report.caplog, is_exc=1 if status_id == 2 else 0)
-        with allure.step("Check that results are added"):
-            for ID in inserted_test_ids:
-                assert db.select_test_by_id(id_=ID), "Information was not added"
+            db.insert_session(session_key=TestData.session_key)
+            db.insert_project(project_name=TestData.project_name)
+            db.insert_author(name=TestData.author_name,
+                             login=TestData.author_login,
+                             email=TestData.author_email)
+            inserted_ids = db.add_results_to_database_get_ids(
+                results=db.saved_results,
+                author_id=db.get_author_id_by_name(name=TestData.author_name),
+                project_id=db.get_project_id_by_project_name(project_name=TestData.project_name),
+                session_id=db.get_session_id_by_key(TestData.session_key),
+                exclude=('TestFunctional.test_add_new_entry',
+                         'TestFunctional.test_processing_of_test_data'))
+        with allure.step("Check that information was added"):
+            for ID in inserted_ids:
+                assert db.get_test_by_id(id_=ID), "Information was not added"
