@@ -13,7 +13,8 @@ class UnionReportingDB(DB):
     saved_results = []
     inserted_test_ids = []
 
-    def add_results_to_database_get_ids(self, results):
+    def add_results_to_database(self, results):
+        """Adds results to database and returns ids of inserted rows"""
         with allure.step("Adding results to the database"):
             inserted_test_ids = set()
             for result in results:

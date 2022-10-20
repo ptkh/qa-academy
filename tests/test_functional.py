@@ -71,7 +71,7 @@ class TestFunctional(object):
             updated_tests = db.update_tests(selected_tests=selected_tests,
                                             author_id=db.get_author_id_by_name(name=TestData.author_name),
                                             session_id=db.get_session_id_by_key(session_key=TestData.session_key))
-            inserted_ids = db.add_results_to_database_get_ids(results=updated_tests)
+            inserted_ids = db.add_results_to_database(results=updated_tests)
         with allure.step("Check that tests are completed and information is updated"):
             for ID in inserted_ids:
                 assert db.get_test_by_id(id_=ID), "Information was not updated"
@@ -97,7 +97,7 @@ class TestFunctional(object):
                                           session_id=db.get_session_id_by_key(session_key=TestData.session_key),
                                           exclude=('TestFunctional.test_add_new_entry',
                                                    'TestFunctional.test_processing_of_test_data'))
-            inserted_ids = db.add_results_to_database_get_ids(results=parsed_tests)
+            inserted_ids = db.add_results_to_database(results=parsed_tests)
         with allure.step("Check that information was added"):
             for ID in inserted_ids:
                 assert db.get_test_by_id(id_=ID), "Information was not added"
