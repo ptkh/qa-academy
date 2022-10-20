@@ -19,8 +19,8 @@ class Config(object):
           "user": {user},
           "password": {password},
           "charset": "utf-8",
-          "unicode": true,
-          "warnings": true
+          "use_unicode": true,
+          "get_warnings": true
         }"""
         with open(os.path.join(os.path.dirname(__file__), 'config.json')) as conf:
             return json.load(conf)
